@@ -48,6 +48,9 @@ $(function(){
             var kinksText = $('#Kinks').val();
             kinks = inputKinks.parseKinksText(kinksText);
             inputKinks.fillInputList();
+            var url = new URL(window.location);
+            url.searchParams.set("file", $("#listType").val());
+            window.history.replaceState('kink', 'KinkList', url);
         }, 'text');
 
     }); 
@@ -690,8 +693,25 @@ $(function(){
         level[text] = cssClass;
     });
 
-    kinks = inputKinks.parseKinksText($('#Kinks').text().trim());
-    inputKinks.init();
+    var url = new URL(window.location);
+    if (url.searchParams.has("file")) {
+        var file = url.searchParams.get("file");
+        var option =  document.querySelector(`#listType > option[value="${file}"]`);
+        if (option) {
+            option.setAttribute("selected", "");
+            fileToRead = 'lists/' + file + '.txt';
+            $.get(fileToRead, function(data) {
+                $('#Kinks').text(data);
+                var kinksText = $('#Kinks').val();
+                kinks = inputKinks.parseKinksText(kinksText);
+                inputKinks.fillInputList();
+                inputKinks.init();
+            }, 'text');
+        }
+    } else {
+        kinks = inputKinks.parseKinksText($('#Kinks').text().trim());
+        inputKinks.init();
+    }
 
     (function(){
         var $popup = $('#InputOverlay');
