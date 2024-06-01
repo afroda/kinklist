@@ -542,3 +542,25 @@ td + td { border-left-style:none }
 @media (max-height: 500px) {
 	#InputPrevious,#InputNext { display:none }
 }
+
+.hide {
+	display: none;
+}
+
+.headerButton {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	gap: 2px;
+}
+
+.hideButton {
+	background: none;
+	border: none;
+	padding: none;
+	margin-left: auto;
+	font-weight: bolder;
+	font-size: large;
+	color: #c9c9c9;
+}

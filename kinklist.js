@@ -69,7 +69,22 @@ $(function(){
             for(var i = 0; i < fields.length; i++) {
                 $('<th>').addClass('choicesCol').text(fields[i]).appendTo($thead);
             }
-            $('<th>').appendTo($thead);
+            var choice = inputKinks.createChoice().removeClass('choices').on('click', function (ev) {
+                if (!ev.target || ev.target === ev.currentTarget) {
+                    return;
+                }
+                var levels = Object.values(level);
+                var currentLevel = Array(...ev.target.classList).find((v) => levels.includes(v));
+                var table = ev.currentTarget.parentElement.parentElement.parentElement;
+                table.querySelector('tbody').querySelectorAll("."+currentLevel).forEach((v) => v.click());
+            });
+            var hide = $('<button>').text("‒").addClass('hideButton').attr('type', 'button').on('click', (ev) => {
+                var table = ev.currentTarget.parentElement.parentElement.parentElement;
+                var tbody = table.querySelector('tbody');
+                tbody.classList.toggle('hide');
+                ev.currentTarget.textContent = tbody.classList.contains('hide') ? "+" : "‒";
+            });
+            $('<th>').append(choice).append(hide).addClass('headerButton').appendTo($thead);
             $('<tbody>').appendTo($table);
             $category.append($table);
 
