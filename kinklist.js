@@ -462,78 +462,28 @@ $(function(){
                 }
             });
         },
-        encode: function(base, input){
-            var hashBase = inputKinks.hashChars.length;
-            var outputPow = inputKinks.maxPow(hashBase, Number.MAX_SAFE_INTEGER);
-            var inputPow = inputKinks.maxPow(base, Math.pow(hashBase, outputPow));
-
-            var output = "";
-            var numChunks = Math.ceil(input.length / inputPow);
-            var inputIndex = 0;
-            for(var chunkId = 0; chunkId < numChunks; chunkId++) {
-                var inputIntValue = 0;
-                for(var pow = 0; pow < inputPow; pow++) {
-                    var inputVal = input[inputIndex++];
-                    if(typeof inputVal === "undefined") break;
-                    var val = inputVal * Math.pow(base, pow);
-                    inputIntValue += val;
-                }
-
-                var outputCharValue = "";
-                while(inputIntValue > 0) {
-                    var maxPow = Math.floor(log(inputIntValue, hashBase));
-                    var powVal = Math.pow(hashBase, maxPow);
-                    var charInt = Math.floor(inputIntValue / powVal);
-                    var subtract = charInt * powVal;
-                    var char = inputKinks.hashChars[charInt];
-                    outputCharValue += char;
-                    inputIntValue -= subtract;
-                }
-                var chunk = inputKinks.prefix(outputCharValue, outputPow, inputKinks.hashChars[0]);
-                output += chunk;
+        encode: function(input) {
+            if (input.some(num => num < 0 || num > 99 || !Number.isInteger(num))) {
+                throw new Error("Numbers must be integers between 0 and 99 inclusive.");
             }
-            return output;
+            let numString = input.map(num => String(num).padStart(2, '0')).join('');
+            let binaryString = '';
+            for (let i = 0; i < numString.length; i += 2) {
+                binaryString += String.fromCharCode(parseInt(numString.substring(i, i + 2)));
+            }
+            return btoa(binaryString);
         },
-        decode: function(base, output){
-            var hashBase = inputKinks.hashChars.length;
-            var outputPow = inputKinks.maxPow(hashBase, Number.MAX_SAFE_INTEGER);
-
-            var values = [];
-            var numChunks = Math.max(output.length / outputPow)
-            for(var i = 0; i < numChunks; i++){
-                var chunk = output.substring(i * outputPow, (i + 1) * outputPow);
-                var chunkValues = inputKinks.decodeChunk(base, chunk);
-                for(var j = 0; j < chunkValues.length; j++) {
-                    values.push(chunkValues[j]);
-                }
+        decode: function(output) {
+            let binaryString = atob(output);
+            let numString = '';
+            for (let i = 0; i < binaryString.length; i++) {
+                numString += String(binaryString.charCodeAt(i)).padStart(2, '0');
             }
-            return values;
-        },
-        decodeChunk: function(base, chunk){
-            var hashBase = inputKinks.hashChars.length;
-            var outputPow = inputKinks.maxPow(hashBase, Number.MAX_SAFE_INTEGER);
-            var inputPow = inputKinks.maxPow(base, Math.pow(hashBase, outputPow));
-
-            var chunkInt = 0;
-            for(var i = 0; i < chunk.length; i++) {
-                var char = chunk[i];
-                var charInt = inputKinks.hashChars.indexOf(char);
-                var pow = chunk.length - 1 - i;
-                var intVal = Math.pow(hashBase, pow) * charInt;
-                chunkInt += intVal;
+            let numbers = [];
+            for (let i = 0; i < numString.length; i += 2) {
+                numbers.push(parseInt(numString.substring(i, i + 2)));
             }
-            var chunkIntCopy = chunkInt;
-
-            var output = [];
-            for(var pow = inputPow - 1; pow >= 0; pow--) {
-                var posBase = Math.floor(Math.pow(base, pow));
-                var posVal = Math.floor(chunkInt / posBase);
-                var subtract = posBase * posVal;
-                output.push(posVal);
-                chunkInt -= subtract;
-            }
-            output.reverse();
-            return output;
+            return numbers;
         },
         updateHash: function(){
             var hashValues = [];
@@ -543,13 +493,13 @@ $(function(){
                 if(!lvlInt) lvlInt = 0;
                 hashValues.push(lvlInt);
             });
-            return inputKinks.encode(Object.keys(colors).length, hashValues);
+            return inputKinks.encode(hashValues);
         },
         parseHash: function(){
             var hash = location.hash.substring(1);
             if(hash.length < 10) return;
 
-            var values = inputKinks.decode(Object.keys(colors).length, hash);
+            var values = inputKinks.decode(hash);
             var valueIndex = 0;
             $('#InputList .choices').each(function(){
                 var $this = $(this);
